@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>С днём рождения!</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{--navy:#0b1636;--navy2:#13245a;--red:#d7193a;--blue:#1f4fd8;--text:#f4f6fb;--muted:#aab4cf}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);
+    background:radial-gradient(120% 80% at 50% 0%,var(--navy2) 0%,var(--navy) 60%,#060b1e 100%);
+    min-height:100%;overflow-x:hidden}
+  .stripes{position:fixed;inset:0;pointer-events:none;opacity:.10;
+    background:repeating-linear-gradient(90deg,var(--red) 0 38px,var(--blue) 38px 76px)}
+  main{position:relative;max-width:720px;margin:0 auto;padding:36px 16px 40px;text-align:center}
+  .kicker{display:inline-block;font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);
+    border:1px solid rgba(255,255,255,.18);padding:6px 12px;border-radius:999px;margin-bottom:18px}
+  h1{font-size:clamp(30px,8.5vw,52px);line-height:1.08;font-weight:800;letter-spacing:-.01em}
+  h1 .name{display:block;margin-top:6px;background:linear-gradient(90deg,#ff5a6e,#fff 50%,#6f95ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .player{position:relative;margin:28px auto 0;border-radius:18px;overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08);background:#000;aspect-ratio:16/9}
+  video{display:block;width:100%;height:100%;object-fit:cover;background:#000}
+  .play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    background:linear-gradient(180deg,rgba(6,11,30,.15),rgba(6,11,30,.65));border:0;color:#fff;cursor:pointer;
+    font:inherit;font-size:17px;font-weight:600}
+  .play .btn{width:84px;height:84px;border-radius:50%;background:var(--red);display:grid;place-items:center;
+    box-shadow:0 0 0 0 rgba(215,25,58,.7);animation:pulse 1.8s infinite}
+  .play .btn svg{width:34px;height:34px;margin-left:5px}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(215,25,58,.65)}70%{box-shadow:0 0 0 22px rgba(215,25,58,0)}100%{box-shadow:0 0 0 0 rgba(215,25,58,0)}}
+  .play.hidden{display:none}
+  .wish{margin-top:30px;font-size:18px;line-height:1.55;color:#dfe5f5}
+  .wish b{color:#fff}
+  .sign{margin-top:14px;font-size:16px;color:var(--muted)}
+  footer{margin-top:38px;font-size:12px;color:rgba(170,180,207,.7)}
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:5}
+</style>
+</head>
+<body>
+<div class="stripes"></div>
+<canvas id="confetti"></canvas>
+<main>
+  <span class="kicker">Особое поздравление</span>
+  <h1>С днём рождения,<span class="name">Сергей Николаевич!</span></h1>
+
+  <div class="player">
+    <video id="v" src="video.mp4" poster="poster.jpg" playsinline preload="metadata"></video>
+    <button class="play" id="play" aria-label="Смотреть поздравление">
+      <span class="btn"><svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>
+      Включи со звуком
+    </button>
+  </div>
+
+  <p class="wish">Здоровья, счастья, сил и <b>только побед</b> — и на поле, и в жизни!</p>
+  <p class="sign">С любовью, твой сын</p>
+
+  <footer>Видео сделано с помощью нейросети</footer>
+</main>
+<script>
+(function(){
+  var v=document.getElementById('v'), p=document.getElementById('play');
+  p.addEventListener('click',function(){ p.classList.add('hidden'); v.muted=false; v.play(); });
+  v.addEventListener('play',function(){ p.classList.add('hidden'); v.controls=true; });
+  v.addEventListener('ended',function(){ burst(); });
+
+  // confetti
+  var c=document.getElementById('confetti'), ctx=c.getContext('2d'), parts=[], raf=null;
+  function size(){ c.width=innerWidth*devicePixelRatio; c.height=innerHeight*devicePixelRatio; }
+  addEventListener('resize',size); size();
+  var colors=['#d7193a','#1f4fd8','#ffffff','#ff5a6e','#6f95ff'];
+  function burst(){
+    for(var i=0;i<180;i++) parts.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,
+      vx:(Math.random()-.5)*3*devicePixelRatio,vy:(2+Math.random()*4)*devicePixelRatio,
+      s:(5+Math.random()*7)*devicePixelRatio,r:Math.random()*6,vr:(Math.random()-.5)*.3,
+      col:colors[i%colors.length]});
+    if(!raf) tick();
+  }
+  function tick(){
+    ctx.clearRect(0,0,c.width,c.height);
+    parts=parts.filter(function(q){return q.y<c.height+40;});
+    parts.forEach(function(q){ q.x+=q.vx; q.y+=q.vy; q.r+=q.vr;
+      ctx.save(); ctx.translate(q.x,q.y); ctx.rotate(q.r); ctx.fillStyle=q.col;
+      ctx.fillRect(-q.s/2,-q.s/4,q.s,q.s/2); ctx.restore(); });
+    raf=parts.length?requestAnimationFrame(tick):null;
+  }
+  setTimeout(burst,300);
+})();
+</script>
+</body>
+</html>
